@@ -13,12 +13,7 @@ logger = logging.getLogger(__name__)
 
 app = FastAPI()
 
-# Secure CORS policy
-allowed_origins = [
-    "https://restaurenthefoodluv-b2e5b9ajgrhpcdc0.southindia-01.azurewebsites.net",
-    "https://www.restaurenthefoodluv-b2e5b9ajgrhpcdc0.southindia-01.azurewebsites.net"
-]
-
+# CORS policy for Vercel deployment
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -27,12 +22,11 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-
 # Jinja2 Templates (used for the homepage)
-templates = Jinja2Templates(directory="templates")
+templates = Jinja2Templates(directory="../templates")
 
 # Google API Key from environment
-GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY", "AIzaSyCUK9w6YqvQ_wGQRgAn3Rpt5Z5ZiaDM05Y")
+GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
 if not GOOGLE_API_KEY:
     logger.error("Missing Google API key. Set GOOGLE_API_KEY as environment variable.")
     raise RuntimeError("Missing GOOGLE_API_KEY")
@@ -105,6 +99,7 @@ async def get_all_restaurants(
 
     return sorted_restaurants[:limit]
 
-if __name__ == "__main__":
-    import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+# This is the handler for Vercel
+from mangum import Mangum
+
+handler = Mangum(app)
