@@ -32,7 +32,7 @@ app.add_middleware(
 templates = Jinja2Templates(directory="templates")
 
 # Google API Key from environment
-GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY", "AIzaSyCwentK-0B51TzTNvmV8qlb619a2_wKDKc")
+GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY", "AIzaSyCUK9w6YqvQ_wGQRgAn3Rpt5Z5ZiaDM05Y")
 if not GOOGLE_API_KEY:
     logger.error("Missing Google API key. Set GOOGLE_API_KEY as environment variable.")
     raise RuntimeError("Missing GOOGLE_API_KEY")
