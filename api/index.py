@@ -23,7 +23,9 @@ app.add_middleware(
 )
 
 # Jinja2 Templates (used for the homepage)
-templates = Jinja2Templates(directory="../templates")
+import os
+template_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), "templates")
+templates = Jinja2Templates(directory=template_dir)
 
 # Google API Key from environment
 GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
@@ -74,10 +76,24 @@ def get_restaurants_from_google(location: str) -> List[Restaurant]:
 
 @app.get("/")
 def index(request: Request):
-    return templates.TemplateResponse(
-        name="index.html",
-        context={"request": request}
-    )
+    try:
+        logger.info("Serving homepage template")
+        return templates.TemplateResponse(
+            name="index.html",
+            context={"request": request}
+        )
+    except Exception as e:
+        logger.error(f"Template error: {e}")
+        # Fallback to simple HTML response
+        return {
+            "message": "Restaurant Finder API is working!",
+            "endpoints": {
+                "home": "/",
+                "restaurants": "/restaurants/{location}",
+                "example": "/restaurants/New York"
+            },
+            "template_error": str(e)
+        }
 
 @app.get("/restaurants/{location}", response_model=List[Restaurant])
 async def get_all_restaurants(
@@ -98,6 +114,10 @@ async def get_all_restaurants(
     sorted_restaurants = sorted(filtered, key=lambda x: x.rating, reverse=True)
 
     return sorted_restaurants[:limit]
+
+@app.get("/health")
+def health_check():
+    return {"status": "healthy", "message": "API is working"}
 
 # This is the handler for Vercel
 from mangum import Mangum
