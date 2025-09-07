@@ -54,6 +54,43 @@
     main {
       flex: 1;
     }
+    /* Badges */
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      border-radius: 9999px;
+      padding: 4px 10px;
+      font-size: 12px;
+      line-height: 1;
+    }
+    .badge-gold { background: #3a2f16; color: #facc15; border: 1px solid #a16207; }
+    .badge-silver { background: #2d2f33; color: #cbd5e1; border: 1px solid #64748b; }
+
+    /* Skeletons */
+    .skeleton {
+      background: linear-gradient(90deg, #2a2a2a 25%, #333 37%, #2a2a2a 63%);
+      background-size: 400% 100%;
+      animation: shimmer 1.2s ease-in-out infinite;
+    }
+    @keyframes shimmer {
+      0% { background-position: 100% 0; }
+      100% { background-position: 0 0; }
+    }
+
+    /* Toast */
+    .toast {
+      position: fixed;
+      right: 16px;
+      bottom: 16px;
+      background: #ef4444;
+      color: white;
+      padding: 12px 16px;
+      border-radius: 8px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.35);
+      display: none;
+      z-index: 60;
+    }
   </style>
 </head>
 <body class="pt-20 px-4 flex flex-col items-center relative">
@@ -78,8 +115,8 @@
       <h1 class="text-4xl font-bold text-white text-center mb-8">DINE & SEEK</h1>
 
       <!-- Search Bar -->
-      <div class="flex justify-center mb-10">
-        <div class="w-full max-w-xl relative">
+      <div class="flex flex-col gap-4 md:flex-row md:items-end md:justify-between mb-6">
+        <div class="w-full md:max-w-xl relative">
           <input
             type="text"
             id="location-input"
@@ -96,6 +133,53 @@
                 d="M21 21l-4.35-4.35m0 0A7.5 7.5 0 104.5 4.5a7.5 7.5 0 0012.15 12.15z"/>
             </svg>
           </button>
+        </div>
+        <!-- Filters -->
+        <div class="w-full md:w-auto grid grid-cols-2 gap-3">
+          <div>
+            <label for="rating-filter" class="block text-sm text-slate-300 mb-1">Min Rating</label>
+            <select id="rating-filter" class="w-full md:w-40 p-2 rounded-lg bg-[#2a2a2a] border border-[#444]">
+              <option value="0">Any</option>
+              <option value="3.0">3.0+</option>
+              <option value="3.5">3.5+</option>
+              <option value="4.0">4.0+</option>
+              <option value="4.5">4.5+</option>
+            </select>
+          </div>
+          <div>
+            <label for="price-filter" class="block text-sm text-slate-300 mb-1">Max Price</label>
+            <select id="price-filter" class="w-full md:w-40 p-2 rounded-lg bg-[#2a2a2a] border border-[#444]">
+              <option value="">Any</option>
+              <option value="1">$</option>
+              <option value="2">$$</option>
+              <option value="3">$$$</option>
+              <option value="4">$$$$</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Loading Skeletons -->
+      <div id="loading-grid" class="grid grid-cols-1 md:grid-cols-2 gap-6 hidden">
+        <div class="restaurant-card p-5 rounded-lg shadow-md">
+          <div class="skeleton h-6 w-2/3 rounded mb-3"></div>
+          <div class="skeleton h-4 w-1/2 rounded mb-2"></div>
+          <div class="skeleton h-4 w-1/3 rounded"></div>
+        </div>
+        <div class="restaurant-card p-5 rounded-lg shadow-md">
+          <div class="skeleton h-6 w-2/3 rounded mb-3"></div>
+          <div class="skeleton h-4 w-1/2 rounded mb-2"></div>
+          <div class="skeleton h-4 w-1/3 rounded"></div>
+        </div>
+        <div class="restaurant-card p-5 rounded-lg shadow-md">
+          <div class="skeleton h-6 w-2/3 rounded mb-3"></div>
+          <div class="skeleton h-4 w-1/2 rounded mb-2"></div>
+          <div class="skeleton h-4 w-1/3 rounded"></div>
+        </div>
+        <div class="restaurant-card p-5 rounded-lg shadow-md">
+          <div class="skeleton h-6 w-2/3 rounded mb-3"></div>
+          <div class="skeleton h-4 w-1/2 rounded mb-2"></div>
+          <div class="skeleton h-4 w-1/3 rounded"></div>
         </div>
       </div>
 
@@ -165,6 +249,9 @@
       const location = document.getElementById("location-input").value.trim();
       const restaurantListDiv = document.getElementById("restaurant-list");
       const errorDiv = document.getElementById("error-message");
+      const skeletons = document.getElementById("loading-grid");
+      const minRating = document.getElementById("rating-filter")?.value || "0";
+      const maxPrice = document.getElementById("price-filter")?.value ?? "";
       restaurantListDiv.innerHTML = "";
       errorDiv.innerHTML = "";
 
@@ -174,7 +261,12 @@
       }
 
       try {
-        const response = await fetch(`/restaurants/${encodeURIComponent(location)}`);
+        skeletons.classList.remove("hidden");
+        const params = new URLSearchParams();
+        if (minRating) params.set("min_rating", minRating);
+        if (maxPrice !== "") params.set("max_price", maxPrice);
+        const qs = params.toString();
+        const response = await fetch(`/restaurants/${encodeURIComponent(location)}${qs ? `?${qs}` : ""}`);
         if (!response.ok) throw new Error(`Failed to fetch: ${response.status}`);
         const data = await response.json();
         currentRestaurants = data || [];
@@ -183,7 +275,10 @@
         renderPage();
       } catch (error) {
         errorDiv.innerHTML = `Error: ${error.message}`;
+        showToast(error.message || "Something went wrong");
         console.error("Fetch error:", error);
+      } finally {
+        skeletons.classList.add("hidden");
       }
     }
 
@@ -203,11 +298,18 @@
       pageData.forEach(restaurant => {
         const card = document.createElement("div");
         card.className = "restaurant-card bg-white p-5 rounded-lg shadow-md";
+        const ratingBadge = (restaurant.rating || 0) >= 4.5 ? 'badge badge-gold' : 'badge badge-silver';
+        const priceText = restaurant.price_level ? "$".repeat(restaurant.price_level) : "N/A";
         card.innerHTML = `
-          <h3 class="text-xl font-semibold text-gray-800">${restaurant.name}</h3>
-          <p class="text-gray-600">Rating: <span class="font-medium">${restaurant.rating || "N/A"}</span></p>
-          <p class="text-gray-600">Price: <span class="font-medium">${restaurant.price_level ? "$".repeat(restaurant.price_level) : "N/A"}</span></p>
-          <p class="text-gray-600">Address: <span class="font-medium">${restaurant.address || "N/A"}</span></p>
+          <div class="flex items-start justify-between gap-2">
+            <h3 class="text-xl font-semibold text-gray-800">${restaurant.name}</h3>
+            <span class="${ratingBadge}">⭐ ${restaurant.rating || "N/A"}</span>
+          </div>
+          <div class="mt-2 flex items-center gap-3 text-gray-600">
+            <span class="badge badge-silver">${priceText}</span>
+            <span class="text-xs text-gray-500">${restaurant.place_id ? String(restaurant.place_id).slice(-6) : ""}</span>
+          </div>
+          <p class="text-gray-600 mt-2">Address: <span class="font-medium">${restaurant.address || "N/A"}</span></p>
         `;
         card.addEventListener("click", () => {
           const address = restaurant.address || `${restaurant.name}`;
@@ -232,6 +334,23 @@
     document.getElementById("location-input").addEventListener("keypress", function (event) {
       if (event.key === "Enter") fetchRestaurants(1);
     });
+
+    // Keyboard navigation for pagination
+    window.addEventListener("keydown", (e) => {
+      if (e.key === "ArrowLeft") changePage(-1);
+      if (e.key === "ArrowRight") changePage(1);
+    });
+
+    // Toast helper
+    function showToast(message) {
+      const toast = document.getElementById("toast");
+      if (!toast) return;
+      toast.textContent = message;
+      toast.style.display = "block";
+      setTimeout(() => { toast.style.display = "none"; }, 3000);
+    }
   </script>
+  <!-- Error Toast -->
+  <div id="toast" class="toast"></div>
 </body>
 </html>
