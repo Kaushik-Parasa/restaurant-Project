@@ -145,18 +145,16 @@
     </nav>
   </div>
 
-  <!-- Top-left quick nav -->
-  <nav class="fixed top-14 left-4 z-40 flex items-center gap-4 text-slate-300 text-sm">
-    <a href="#" class="hover:text-blue-400" onclick="navigateTo('home')">Home</a>
-    <a href="#" class="hover:text-blue-400" onclick="navigateTo('about')">About</a>
-    <a href="#" class="hover:text-blue-400" onclick="navigateTo('contact')">Contact</a>
-  </nav>
+  <!-- Removed duplicate quick nav to avoid clutter -->
 
   <main class="w-full flex flex-col items-center">
 
     <!-- Home Section -->
     <div id="home" class="w-full max-w-4xl hidden-section">
-      <h1 class="text-4xl md:text-5xl font-extrabold text-white text-center mb-8 tracking-tight">DINE & SEEK</h1>
+      <h1 class="text-center mb-2">
+        <span class="block text-transparent bg-clip-text bg-gradient-to-r from-sky-400 via-fuchsia-400 to-emerald-400 text-5xl md:text-6xl font-extrabold tracking-tight drop-shadow-[0_1px_8px_rgba(0,0,0,0.35)]">DINE & SEEK</span>
+      </h1>
+      <p class="text-center text-slate-300 mb-6">Find the best places to eat around you — fast, beautiful, and simple.</p>
 
       <!-- Search Bar -->
       <div class="flex flex-col gap-4 md:flex-row md:items-end md:justify-between mb-6">
