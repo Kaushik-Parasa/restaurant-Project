@@ -4,3 +4,5 @@ def handler(request):
         "headers": {"Content-Type": "application/json"},
         "body": '{"message": "Simple function working", "status": "success"}'
     }
+
+

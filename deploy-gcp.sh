@@ -33,3 +33,5 @@ gcloud run deploy $SERVICE_NAME \
 echo "✅ Deployment complete!"
 echo "🌐 Your app will be available at the URL shown above"
 echo "💡 Don't forget to set your GOOGLE_API_KEY environment variable!"
+
+
